@@ -1,0 +1,89 @@
+.index {
+    margin-top: 20px;
+    width: 100%;
+    height: 80vh;
+    background: #fcea9c;
+    // background: #ffa500;
+    position: relative;
+    transition: 2s all;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+
+    .contentSun {
+        width: 500px;
+        height: 0px;
+        overflow: hidden;
+        transition: 2s all;
+        position: absolute;
+        left: calc(50% - 250px);
+        bottom: 100px;
+    }
+
+    .contentSunAc {
+        height: 500px;
+    }
+
+    .contentMoon {
+        width: 500px;
+        height: 0px;
+        overflow: hidden;
+        transition: 2s all;
+        margin-top: -50px;
+        position: absolute;
+        left: calc(50% - 250px);
+    }
+
+    .contentMoonAc {
+        height: 500px;
+        top: 50px;
+    }
+
+    .sun {
+        height: 500px;
+        border-radius: 50%;
+        background: #ffa500;
+    }
+
+    .moon {
+        height: 500px;
+        top: 0;
+        border-radius: 50%;
+        background: #01e9ff;
+        transform: rotate(8deg);
+    }
+
+    .moonAction {
+        top: 50px;
+    }
+
+    .sunAction {
+        top: 50px;
+    }
+
+    .moonDom {
+        background: #060e21;
+        width: 500px;
+        height: 400px;
+        border-radius: 50%;
+        transform: rotate(323deg) translate(-43px, -65px);
+        transition: 2s all;
+    }
+
+    .moonDomAc {
+        background: #fcea9c;
+    }
+
+    .mask {
+        backdrop-filter: blur(30px);
+        height: 200px;
+        width: 100%;
+        position: absolute;
+        bottom: 0;
+    }
+}
+
+.indexAction {
+    background: #060e21;
+}
