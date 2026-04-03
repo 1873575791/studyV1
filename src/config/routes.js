@@ -31,4 +31,16 @@ export const routes = [
     name: '调整布局',
     path: '/layoutchange',
   },
+  {
+    name: '音频可视化',
+    path: '/audiovisual',
+  },
+  {
+    name: '图片蒙版',
+    path: '/imagemask',
+  },
+  {
+    name: '元素调整',
+    path: '/resizeeditor',
+  },
 ];

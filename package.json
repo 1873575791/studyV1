@@ -28,6 +28,7 @@
     "@fullcalendar/react": "^6.1.17",
     "@leafer-in/editor": "^1.8.0",
     "@leafer-in/export": "^1.8.0",
+    "@leafer-in/viewport": "^1.8.0",
     "ahooks": "^3.8.1",
     "leafer-ui": "^1.8.0",
     "matter-js": "^0.20.0",

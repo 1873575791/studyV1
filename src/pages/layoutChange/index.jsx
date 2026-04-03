@@ -10,7 +10,7 @@ const Index = () => {
   const line2 = useRef(null);
   const line3 = useRef(null);
   const w = (size?.width || 0) / 100;
-  const h = (size?.height || 0) / 100;
+  const h = (size?.height - 64 || 0) / 100;
   const [selected, setSelected] = useState('default');
   const update = useUpdate();
   const layoutLine = useRef({
@@ -114,7 +114,7 @@ const Index = () => {
   const handleMouseMove1 = (e) => {
     const deltaX = e.clientX - data.current.offsetX;
     const newWidth1 =
-      data.current.oldWidth1 - (data.current.rect1.right - deltaX);
+      data.current.oldWidth1 - (data.current.rect1.left - deltaX);
     const newWidth2 =
       data.current.oldWidth2 + (data.current.rect1.left - deltaX);
     if (
@@ -152,17 +152,17 @@ const Index = () => {
   };
 
   const handleMouseMove3 = (e) => {
-    const deltaY = e.clientY - data.current.offsetY;
+    const deltaY = e.clientY - data.current.offsetY - 64;
     const newHeight = deltaY;
     const newHeight4 =
-      data.current.oldHeight4 + (data.current.rect3.top - deltaY);
+      data.current.oldHeight4 + (data.current.rect3.top - deltaY) - 64;
     if (newHeight < 300 || newHeight4 < 300) return;
     if (selected === 'default') {
       layoutLine.current[selected]['1'].height = deltaY;
     }
     layoutLine.current[selected]['2'].height = deltaY;
     layoutLine.current[selected]['3'].top = deltaY;
-    layout.current[selected]['1'].height = newHeight;
+    // layout.current[selected]['1'].height = newHeight;
     layout.current[selected]['2'].height = newHeight;
     layout.current[selected]['3'].height = newHeight;
     layout.current[selected]['4'].top = deltaY + 4;
@@ -233,10 +233,16 @@ const Index = () => {
 
   return (
     <div className="App">
-      <div className="card" style={{ ...layout.current[selected]['1'] }}>
+      <div
+        className="card"
+        style={{ ...layout.current[selected]['1'], background: '#f0f0f0' }}
+      >
         1
       </div>
-      <div className="card" style={{ ...layout.current[selected]['2'] }}>
+      <div
+        className="card"
+        style={{ ...layout.current[selected]['2'], background: '#e0e0e0' }}
+      >
         <Select
           value={selected}
           style={{ width: 120 }}

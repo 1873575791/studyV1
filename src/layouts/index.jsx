@@ -5,7 +5,7 @@ import { history, useLocation } from 'umi';
 import { Layout, Menu } from 'antd';
 import { useState, useEffect } from 'react';
 
-const { Header, Content, Footer } = Layout;
+const { Header, Content } = Layout;
 const items = routes.map((item) => {
   return {
     key: item.path,
