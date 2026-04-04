@@ -202,63 +202,64 @@ const ResizeEditor: React.FC = () => {
     };
   };
 
+  // 开始旋转（旋转区域点击）
+  const handleRotateMouseDown = (e: React.MouseEvent, handle: HandleType) => {
+    if (!selectedElement) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    // 旋转模式
+    setIsRotating(true);
+    setActiveHandle(handle);
+
+    // 记录容器偏移量
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      containerOffsetRef.current = { left: rect.left, top: rect.top };
+    }
+
+    const centerX = selectedElement.x + selectedElement.width / 2;
+    const centerY = selectedElement.y + selectedElement.height / 2;
+
+    // 将鼠标坐标转换为容器坐标系
+    const mouseX = e.clientX - containerOffsetRef.current.left;
+    const mouseY = e.clientY - containerOffsetRef.current.top;
+
+    rotateStartRef.current = {
+      centerX,
+      centerY,
+      startAngle: Math.atan2(mouseY - centerY, mouseX - centerX),
+      startRotate: selectedElement.rotate,
+    };
+  };
+
   // 开始调整大小
   const handleResizeMouseDown = (e: React.MouseEvent, handle: HandleType) => {
     if (!selectedElement) return;
     e.preventDefault();
     e.stopPropagation();
 
-    // 检查是否按住Shift键（旋转模式）
-    if (['tl', 'tr', 'bl', 'br'].includes(handle) && e.shiftKey) {
-      // 旋转模式
-      setIsRotating(true);
-      setActiveHandle(handle);
+    // 缩放模式
+    setIsResizing(true);
+    setActiveHandle(handle);
 
-      // 记录容器偏移量
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        containerOffsetRef.current = { left: rect.left, top: rect.top };
-      }
-
-      const centerX = selectedElement.x + selectedElement.width / 2;
-      const centerY = selectedElement.y + selectedElement.height / 2;
-
-      // 将鼠标坐标转换为容器坐标系
-      const mouseX = e.clientX - containerOffsetRef.current.left;
-      const mouseY = e.clientY - containerOffsetRef.current.top;
-
-      rotateStartRef.current = {
-        centerX,
-        centerY,
-        startAngle: Math.atan2(mouseY - centerY, mouseX - centerX),
-        startRotate: selectedElement.rotate,
-      };
-    } else {
-      // 缩放模式
-      setIsResizing(true);
-      setActiveHandle(handle);
-
-      // 记录容器偏移量
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        containerOffsetRef.current = { left: rect.left, top: rect.top };
-      }
-
-      // 计算并固定锚点位置
-      const anchorHandle = getAnchorHandle(handle);
-      const anchorPos = getHandleAbsolutePosition(
-        selectedElement,
-        anchorHandle,
-      );
-
-      resizeStartRef.current = {
-        x: e.clientX,
-        y: e.clientY,
-        element: { ...selectedElement },
-        handle,
-        anchorPos,
-      };
+    // 记录容器偏移量
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      containerOffsetRef.current = { left: rect.left, top: rect.top };
     }
+
+    // 计算并固定锚点位置
+    const anchorHandle = getAnchorHandle(handle);
+    const anchorPos = getHandleAbsolutePosition(selectedElement, anchorHandle);
+
+    resizeStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      element: { ...selectedElement },
+      handle,
+      anchorPos,
+    };
   };
 
   // 鼠标移动
@@ -381,13 +382,32 @@ const ResizeEditor: React.FC = () => {
         const mouseX = e.clientX - containerOffsetRef.current.left;
         const mouseY = e.clientY - containerOffsetRef.current.top;
         const currentAngle = Math.atan2(mouseY - centerY, mouseX - centerX);
-        const angleDiff = (currentAngle - startAngle) * (180 / Math.PI);
+        let angleDiff = (currentAngle - startAngle) * (180 / Math.PI);
+
+        let newRotate = startRotate + angleDiff;
+
+        // 旋转吸附效果（每90度吸附）
+        const snapAngles = [0, 90, 180, 270, 360, -90, -180, -270, -360];
+        const snapThreshold = 5; // 吸附阈值，5度以内吸附
+
+        // 标准化角度到 -360 到 360 范围
+        for (const snapAngle of snapAngles) {
+          if (Math.abs(newRotate - snapAngle) < snapThreshold) {
+            newRotate = snapAngle;
+            break;
+          }
+        }
+
+        // 标准化到 -180 到 180
+        if (newRotate > 180) {
+          newRotate -= 360;
+        } else if (newRotate < -180) {
+          newRotate += 360;
+        }
 
         setElements((prev) =>
           prev.map((el) =>
-            el.id === selectedId
-              ? { ...el, rotate: startRotate + angleDiff }
-              : el,
+            el.id === selectedId ? { ...el, rotate: newRotate } : el,
           ),
         );
       }
@@ -466,7 +486,8 @@ const ResizeEditor: React.FC = () => {
       </div>
 
       <div className={styles.hint}>
-        提示：拖拽元素移动位置 | 拖拽圆点调整大小 | Shift + 拖拽四角圆点旋转
+        提示：拖拽元素移动位置 | 拖拽圆点调整大小 |
+        拖拽四角外侧区域旋转（吸附角度：0°、90°、180°、270°）
       </div>
 
       <div
@@ -512,22 +533,35 @@ const ResizeEditor: React.FC = () => {
                     const handleStyle = getHandleStyle(handle);
 
                     return (
-                      <div
-                        key={handle}
-                        className={`${styles.handle} ${
-                          isCorner ? styles.corner : styles.edge
-                        }`}
-                        style={{
-                          ...handleStyle,
-                          cursor: isCorner ? 'nwse-resize' : 'ns-resize',
-                        }}
-                        onMouseDown={(e) => handleResizeMouseDown(e, handle)}
-                        title={
-                          isCorner
-                            ? '拖拽调整大小，Shift+拖拽旋转'
-                            : '拖拽调整大小'
-                        }
-                      />
+                      <React.Fragment key={handle}>
+                        {/* 角落旋转区域指示器 */}
+                        {isCorner && (
+                          <div
+                            className={styles.rotateZone}
+                            style={{
+                              ...handleStyle,
+                              width: 28,
+                              height: 28,
+                            }}
+                            onMouseDown={(e) =>
+                              handleRotateMouseDown(e, handle)
+                            }
+                            title="拖拽旋转"
+                          />
+                        )}
+                        {/* 控制点 */}
+                        <div
+                          className={`${styles.handle} ${
+                            isCorner ? styles.corner : styles.edge
+                          }`}
+                          style={{
+                            ...handleStyle,
+                            cursor: isCorner ? 'nwse-resize' : 'ns-resize',
+                          }}
+                          onMouseDown={(e) => handleResizeMouseDown(e, handle)}
+                          title="拖拽调整大小"
+                        />
+                      </React.Fragment>
                     );
                   })}
                 </>

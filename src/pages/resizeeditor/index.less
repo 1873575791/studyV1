@@ -130,3 +130,21 @@
   background: #fff;
   border-color: #1890ff;
 }
+
+.rotateZone {
+  position: absolute;
+  border-radius: 50%;
+  background: transparent;
+  cursor: grab;
+  z-index: 5;
+  border: 1px dashed rgba(24, 144, 255, 0.4);
+
+  &:hover {
+    background: rgba(24, 144, 255, 0.1);
+    border-color: rgba(24, 144, 255, 0.6);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+}
